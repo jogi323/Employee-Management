@@ -28,9 +28,10 @@ exports.login = function (req, res) {
         res.json({ code: 0, msg: 'Invalid Credentials' });
       } else {
         var secret = '123456';
-        var token = jwt.sign({ data: data }, 'secret', { expiresIn: 7200 });
+        var token = jwt.sign({ data: data }, secret, { expiresIn: 7200 });
         // console.log(token);
         // console.log(data);
+        process.env.TOKEN_KEY = token;
         res.json({ code: 1, data: data, token: token });
       }
     })
@@ -361,12 +362,20 @@ exports.createEmployee = function (req, res) {
 
 // all employees
 exports.allemployees = function (req, res) {
-  Employee.find().toArray().then((data) => {
-    res.json({ status: 200, data: data })
+  MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
+    db = client.db("EMPINFO");
+    Employee = db.collection("Employee");
+    Employee.find().toArray().then((data) => {
+      res.json({ status: 200, data: data })
+    })
+      .catch((err) => {
+        res.status(500).json({ error: err });
+      })
   })
     .catch((err) => {
-      res.status(500).json({ error: err });
-    })
+      console.log("errrrrrrrrrrrrrrrrrrrr", err);
+      throw err;
+    });
 }
 
 exports.empdetails = function (req, res) {

@@ -6,10 +6,10 @@ var nodemailer = require('nodemailer');
 // var xoauth2 = require('xoauth2');
 var jwt = require('jsonwebtoken');
 
-var Employee;
+var Employee, db;
 
 MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
-  const db = client.db("EMPINFO");
+  db = client.db("EMPINFO");
   Employee = db.collection("Employee");
 })
   .catch((err) => {
@@ -249,7 +249,7 @@ exports.createEmployee = function (req, res) {
 
     employeeType: req.body.etype,
     role: req.body.erole,
-    username: req.body.fname[0] + req.body.lname,
+    username: req.body.fname[0].toLowerCase() + req.body.lname.toLowerCase(),
     password: password,
     // department: req.body.department,
     designation: req.body.designation,
@@ -274,81 +274,84 @@ exports.createEmployee = function (req, res) {
   MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
     const db = client.db("EMPINFO");
     var Employee = db.collection("Employee");
-  Employee.findOne({ employeeId: req.body.rmanager }, function (err, data) {
-    // console.log(data[0]);
-    if (err) {
-      console.log(err);
-      return res.status(500).json({
-        title: 'An error occurred',
-        error: err
-      });
-    } else {
-      if (data != null) {
-        employee.reportingTo.push(data);
-        Employee.insertOne(employee, function (err, result) {
-          if (err) {
-            return res.status(500).json({
-              title: 'An error occurred',
-              error: err
-            });
-          } else {
-            let reportingToHim = Object.assign([], data.reportingToHim);
-            reportingToHim.push(result);
-            Employee.findOneAndUpdate({ employeeId: data.employeeId }, { $set: { reportingToHim: reportingToHim } }, { upsert: true }, function (err, resul) {
-              if (err) {
-                console.log("error in executing query");
-                throw err;
-              }
-              else {
-                console.log("modified data::::");
-                // console.log(resul);
-              }
-            });
-            var transporter = nodemailer.createTransport({
-              service: 'gmail',
-              auth: {
-                type: 'OAuth2',
-                user: 'empinfo323@gmail.com',
-                clientId: '264414123191-o02oin39ppc1kc5ptihh4h887fuhp7km.apps.googleusercontent.com',
-                clientSecret: 'x0lbaW_iLQtMJtNhbIBo5Ryp',
-                refreshToken: '1//04KOj4G7NvxfJCgYIARAAGAQSNwF-L9IrDAKLcNRHLWXFrjx2Mt592vGhnvP5pH5QMXLYNLSU2RSFSdZHM4uJAMKQgxmmNLqonkU',
-                accessToken: 'ya29.a0ARrdaM8WYB4bHn6HJ2RsrMO78wfsLxm408P76en86xjQsQXDzV88ySynoJ_GgcWIPSWhNdC2yGLfoF9740V5M2UOaZ2BKzTFYCevgrmpHq0Ujo0MVQjpZF8kSbc7WXD67fmqhw8FR2qrknXdjw4NnBq_O71b'
-              }
-            })
-
-            var mailOptions = {
-              from: 'admin <empinfo323@gmail.com>',
-              to: req.body.email,
-              subject: 'New Employeement EmployeeId',
-              html: '<h3>Hello User<h3><br><br>This is to convey that your are successfully enrolled in our organization. Login to our portal using Username:' + employee.username + '<br> possword:' + password + '<br>'
-            }
-            transporter.sendMail(mailOptions, function (err, res) {
-              if (err) {
-                console.log('Error===========', err);
-              } else {
-                console.log('Email Sent==================================');
-              }
-            })
-            Employee.findOne({ _id: result.insertedId }, (err, emp) => {
-              if (err) {
-                throw err;
-              } else {
-                res.status(200).json({
-                  message: 'User created',
-                  user: emp
-                });
-              }
-            })
-
-          }
+    Employee.findOne({ employeeId: req.body.rmanager }, function (err, data) {
+      // console.log(data[0]);
+      if (err) {
+        console.log(err);
+        return res.status(500).json({
+          title: 'An error occurred',
+          error: err
         });
       } else {
-        res.status(500).json({
-          message: 'manager not  existed',
-        });
+        if (data != null) {
+          employee.reportingTo.push(data);
+          Employee.find({}, { sort: { employeeId: -1 }, limit: 1 }).toArray().then((data) => {
+            employee.employeeId = data && data[0] ? data[0].employeeId + 1 : 1;
+            Employee.insertOne(employee, function (err, result) {
+              if (err) {
+                return res.status(500).json({
+                  title: 'An error occurred',
+                  error: err
+                });
+              } else {
+                let reportingToHim = Object.assign([], data.reportingToHim);
+                reportingToHim.push(result);
+                Employee.findOneAndUpdate({ employeeId: data.employeeId }, { $set: { reportingToHim: reportingToHim } }, { upsert: true }, function (err, resul) {
+                  if (err) {
+                    console.log("error in executing query");
+                    throw err;
+                  }
+                  else {
+                    console.log("modified data::::");
+                    // console.log(resul);
+                  }
+                });
+                var transporter = nodemailer.createTransport({
+                  service: 'gmail',
+                  auth: {
+                    type: 'OAuth2',
+                    user: 'empinfo323@gmail.com',
+                    clientId: '264414123191-o02oin39ppc1kc5ptihh4h887fuhp7km.apps.googleusercontent.com',
+                    clientSecret: 'x0lbaW_iLQtMJtNhbIBo5Ryp',
+                    refreshToken: '1//04KOj4G7NvxfJCgYIARAAGAQSNwF-L9IrDAKLcNRHLWXFrjx2Mt592vGhnvP5pH5QMXLYNLSU2RSFSdZHM4uJAMKQgxmmNLqonkU',
+                    accessToken: 'ya29.a0ARrdaM8WYB4bHn6HJ2RsrMO78wfsLxm408P76en86xjQsQXDzV88ySynoJ_GgcWIPSWhNdC2yGLfoF9740V5M2UOaZ2BKzTFYCevgrmpHq0Ujo0MVQjpZF8kSbc7WXD67fmqhw8FR2qrknXdjw4NnBq_O71b'
+                  }
+                })
+
+                var mailOptions = {
+                  from: 'admin <empinfo323@gmail.com>',
+                  to: req.body.email,
+                  subject: 'New Employeement Details',
+                  html: '<h3>Hello User<h3><br><br>This is to convey that your are successfully enrolled in our organization. Login to our portal using Username:' + employee.username + '<br> password:' + password + '<br>'
+                }
+                transporter.sendMail(mailOptions, function (err, res) {
+                  if (err) {
+                    console.log('Error===========', err);
+                  } else {
+                    console.log('Email Sent==================================');
+                  }
+                })
+                Employee.findOne({ _id: result.insertedId }, (err, emp) => {
+                  if (err) {
+                    throw err;
+                  } else {
+                    res.status(200).json({
+                      message: 'User created',
+                      user: emp
+                    });
+                  }
+                })
+
+              }
+            });
+          })
+        } else {
+          res.status(500).json({
+            message: 'manager not  existed',
+          });
+        }
       }
-    }
-  });
+    });
   })
     .catch((err) => {
       console.log("errrrrrrrrrrrrrrrrrrrr", err);
@@ -368,7 +371,6 @@ exports.allemployees = function (req, res) {
 
 exports.empdetails = function (req, res) {
   var id = req.params.id;
-  console.log(id);
   MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
     const db = client.db("EMPINFO");
     var Employee = db.collection("Employee");

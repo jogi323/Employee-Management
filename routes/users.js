@@ -48,4 +48,12 @@ router.get('/allemployees', auth, function(req, res) {
 router.get('/empdetails/:id', auth, function(req, res, next) {
    controller.empdetails(req,res);
 });
+// Get Action to get reportess
+router.get('/myreportees/:id', auth, function(req, res, next) {
+   controller.myreportees(req,res);
+});
+// To delete employee
+router.get('/deleteemployee/:id', auth, function(req, res, next) {
+   controller.deleteEmployee(req,res);
+});
 module.exports = router;

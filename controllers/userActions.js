@@ -285,7 +285,7 @@ exports.createEmployee = function (req, res) {
         });
       } else {
         if (data != null) {
-          employee.reportingTo.push(data);
+          employee.reportingTo.push(data._id);
           Employee.find({}, { sort: { employeeId: -1 }, limit: 1 }).toArray().then((data) => {
             employee.employeeId = data && data[0] ? data[0].employeeId + 1 : 1;
             Employee.insertOne(employee, function (err, result) {
@@ -296,7 +296,7 @@ exports.createEmployee = function (req, res) {
                 });
               } else {
                 let reportingToHim = Object.assign([], data.reportingToHim);
-                reportingToHim.push(result);
+                reportingToHim.push(result.insertedId);
                 Employee.findOneAndUpdate({ employeeId: data.employeeId }, { $set: { reportingToHim: reportingToHim } }, { upsert: true }, function (err, resul) {
                   if (err) {
                     console.log("error in executing query");
@@ -379,6 +379,53 @@ exports.allemployees = function (req, res) {
 }
 
 exports.empdetails = function (req, res) {
+  var id = req.params.id;
+  MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
+    const db = client.db("EMPINFO");
+    var Employee = db.collection("Employee");
+    Employee.findOne({ _id: id }, function (err, data) {
+      if (err) {
+        res.status(500).json({ error: err })
+      } else {
+        console.log("data=============", data)
+        res.json({ code: 0, data: data });
+      }
+    })
+  })
+    .catch((err) => {
+      console.log("errrrrrrrrrrrrrrrrrrrr", err);
+      throw err;
+    });
+}
+
+exports.myreportees = function (req, res) {
+  var id = req.params.id;
+  MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
+    const db = client.db("EMPINFO");
+    var Employee = db.collection("DeletedEmployees");
+    console.log(id)
+    Employee.find().toArray().then((employees) => {
+      // console.log(employees);
+      let reportees = [];
+      employees.forEach((emp) => {
+        if (emp.reportingTo && emp.reportingTo.includes(id)) {
+          reportees.push(emp);
+        }
+      });
+      console.log(reportees);
+      res.json({code: 0, data: reportees});
+    })
+    .catch((err) => {
+      console.log("errr", err)
+      res.status(500).json({ error: err })
+    })
+  })
+    .catch((err) => {
+      console.log("errrrrrrrrrrrrrrrrrrrr", err);
+      throw err;
+    });
+}
+exports.deleteEmployee = function (req, res) {
   var id = req.params.id;
   MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
     const db = client.db("EMPINFO");

@@ -402,7 +402,7 @@ exports.myreportees = function (req, res) {
   var id = req.params.id;
   MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
     const db = client.db("EMPINFO");
-    var Employee = db.collection("DeletedEmployees");
+    var Employee = db.collection("Employees");
     console.log(id)
     Employee.find().toArray().then((employees) => {
       // console.log(employees);

@@ -401,13 +401,13 @@ exports.empdetails = function (req, res) {
 exports.myreportees = function (req, res) {
   var id = req.params.id;
   MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
-    const db = client.db("EMPINFO");
-    var Employee = db.collection("Employees");
-    console.log(id)
+    db = client.db("EMPINFO");
+    Employee = db.collection("Employee");
     Employee.find().toArray().then((employees) => {
-      // console.log(employees);
+      // console.log("employees==", employees);
       let reportees = [];
       employees.forEach((emp) => {
+        // console.log("emp=======", emp);
         if (emp.reportingTo && emp.reportingTo.includes(id)) {
           reportees.push(emp);
         }
@@ -430,12 +430,22 @@ exports.deleteEmployee = function (req, res) {
   MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
     const db = client.db("EMPINFO");
     var Employee = db.collection("Employee");
+    var DeletedEmployee = db.collection("DeletedEmployee");
     Employee.findOne({ _id: id }, function (err, data) {
       if (err) {
         res.status(500).json({ error: err })
       } else {
-        console.log("data=============", data)
-        res.json({ code: 0, data: data });
+        console.log("data=============", data);
+        delete data._id;
+        let deletedEmployee = data;
+        DeletedEmployee.insertOne(deletedEmployee, (err, response) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({err: err});
+          } else {
+            console.log("response============",response);
+          }
+        })
       }
     })
   })

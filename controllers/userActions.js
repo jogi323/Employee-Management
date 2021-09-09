@@ -435,7 +435,8 @@ exports.deleteEmployee = function (req, res) {
       if (err) {
         res.status(500).json({ error: err })
       } else {
-        console.log("data=============", data);
+        // console.log("data=============", data);
+        let userId =data._id;
         delete data._id;
         let deletedEmployee = data;
         DeletedEmployee.insertOne(deletedEmployee, (err, response) => {
@@ -443,7 +444,15 @@ exports.deleteEmployee = function (req, res) {
             console.log(err);
             res.status(500).json({err: err});
           } else {
-            console.log("response============",response);
+            // console.log("response============",response);
+            Employee.deleteOne({_id: userId}, (err, user) => {
+              if (err){
+                res.status(500).json({ error: err })
+              } else{
+                // console.log("user=======", user);
+                res.status(200).json({code: 0, msg: "Employee deleted successfully"});
+              }
+            })
           }
         })
       }

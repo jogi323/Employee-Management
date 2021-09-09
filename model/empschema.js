@@ -53,3 +53,4 @@ schema.index({employeeId: "text", employeeName:"text", companyEmail:"text" });
 
 //exporting the schema 
 module.exports = mongoose.model('Employee', schema);
+module.exports = mongoose.model('DeletedEmployee', schema);

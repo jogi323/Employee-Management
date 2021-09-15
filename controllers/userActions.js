@@ -463,3 +463,39 @@ exports.deleteEmployee = function (req, res) {
       throw err;
     });
 }
+
+exports.updateUser = function (req, res) {
+  var id = req.body._id;
+  console.log(req.body);
+  let updatedUser = {
+    employeeType: req.body.etype,
+    role: req.body.erole,
+    designation: req.body.designation,
+    personalEmail: req.body.email,
+    primaryMobile: req.body.mobile1,
+    alternateMobile: req.body.mobile2,
+    joinedOn: req.body.doj,
+    status: req.body.jobstatus,
+    dob: req.body.dob,
+    address: req.body.address,
+    manager: req.body.rmanager,
+    payRollType: req.body.epayroll,
+    cost: req.body.ctc
+  }
+  MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
+    const db = client.db("EMPINFO");
+    var Employee = db.collection("Employee");
+    Employee.findOneAndUpdate({ _id: id }, {$set: updatedUser}, function (err, data) {
+      if (err) {
+        res.status(500).json({ error: err })
+      } else {
+        console.log("data=============", data);
+        res.json(200).json({code: 0, msg: "User details updated successfully"})
+      }
+    })
+  })
+    .catch((err) => {
+      console.log("errrrrrrrrrrrrrrrrrrrr", err);
+      throw err;
+    });
+}

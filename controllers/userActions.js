@@ -489,8 +489,7 @@ exports.updateUser = function (req, res) {
       if (err) {
         res.status(500).json({ error: err })
       } else {
-        console.log("data=============", data);
-        res.json(200).json({code: 0, msg: "User details updated successfully"})
+        res.status(200).json({code: 0, msg: "User details updated successfully"})
       }
     })
   })

@@ -39,7 +39,6 @@ var schema = new Schema({
     otp:{type:String, expireAfterSeconds: 300 },
     timesheets: {type: Schema.Types.ObjectId, ref: 'TimeSheets'},
     _id: String
-    //tmesheets: [{type: Schema.Types.ObjectId, ref: 'TimeSheets'}]
 });
 // schema.plugin(autoIncrement.plugin, {
 //     model: 'Employee',

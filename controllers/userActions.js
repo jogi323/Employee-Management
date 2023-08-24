@@ -1,4 +1,4 @@
-const uri = "mongodb://empinfo:empinfo@cluster0-shard-00-00.8xam9.mongodb.net:27017,cluster0-shard-00-01.8xam9.mongodb.net:27017,cluster0-shard-00-02.8xam9.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-2q2uo1-shard-0&authSource=admin&retryWrites=true&w=majority";
+const uri = "mongodb+srv://empinfo:empinfo@cluster0.thiijt0.mongodb.net?retryWrites=true&w=majority";
 var EmployeeSchema = require('../model/empschema');
 const { MongoClient } = require('mongodb');
 var generator = require('generate-password');
@@ -11,10 +11,9 @@ var Employee, db;
 MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: false }).then((client) => {
   db = client.db("EMPINFO");
   Employee = db.collection("Employee");
-})
-  .catch((err) => {
+}).catch((err) => {
     console.log(err, "err==================");
-  })
+})
 
 exports.login = function (req, res) {
   //console.log(req.body);
@@ -276,7 +275,6 @@ exports.createEmployee = function (req, res) {
     const db = client.db("EMPINFO");
     var Employee = db.collection("Employee");
     Employee.findOne({ employeeId: req.body.rmanager }, function (err, data) {
-      // console.log(data[0]);
       if (err) {
         console.log(err);
         return res.status(500).json({
